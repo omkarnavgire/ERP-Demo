@@ -1,0 +1,165 @@
+<div class="tc-page">
+
+  <div class="tc-layout">
+
+    <!-- LEFT: TRAINING COURSE FORM -->
+    <div class="tc-form-card">
+
+      <div class="tc-card-header">
+        Training Course Form
+      </div>
+
+      <form [formGroup]="courseForm" (ngSubmit)="submit()">
+
+        <div class="tc-card-body">
+
+          <div class="tc-field">
+            <label>Course Name</label>
+            <input type="text" formControlName="courseName" placeholder="">
+          </div>
+
+          <div class="tc-fee-row" [formGroup]="feeRowForm">
+
+            <div class="tc-field">
+              <label>Fees Mode</label>
+              <select formControlName="feeMode">
+                <option value="" disabled selected>Select Fee Mode</option>
+                <option *ngFor="let mode of feeModes" [value]="mode">
+                  {{ mode }}
+                </option>
+              </select>
+            </div>
+
+            <div class="tc-field">
+              <label>Fees Amount</label>
+              <input type="number" formControlName="feeAmount">
+            </div>
+
+            <div class="tc-field tc-field-sm">
+              <label>GST</label>
+              <input type="number" formControlName="gst">
+            </div>
+
+            <div class="tc-field tc-field-sm">
+              <label>Installments</label>
+              <input type="number" formControlName="installments">
+            </div>
+
+            <button
+              type="button"
+              class="tc-add-btn"
+              (click)="addFeeRow()">
+              +
+            </button>
+
+          </div>
+
+          <div class="tc-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Sr No</th>
+                  <th>Fee Mode</th>
+                  <th>Fee Amount</th>
+                  <th>GST</th>
+                  <th>Total Installments</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of feeRows">
+                  <td>{{ row.srNo }}</td>
+                  <td>{{ row.feeMode }}</td>
+                  <td>{{ row.feeAmount }}</td>
+                  <td>{{ row.gst }}</td>
+                  <td>{{ row.totalInstallments }}</td>
+                  <td class="tc-row-action">
+                    <button type="button" class="tc-row-delete" (click)="removeFeeRow(row)">
+                      x
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="feeRows.length === 0">
+                  <td colspan="6" class="tc-no-data">No fee structure added.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+        <div class="tc-card-footer">
+          <button type="submit" class="tc-submit-btn">
+            Submit
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+
+    <!-- RIGHT: COURSE LIST -->
+    <div class="tc-list-card">
+
+      <div class="tc-list" *ngFor="let course of courses">
+
+        <div class="tc-list-item">
+
+          <span class="tc-course-name">{{ course.courseName }}</span>
+
+          <div class="tc-list-actions">
+            <button
+              type="button"
+              class="tc-expand-btn"
+              [class.tc-expanded]="course.expanded"
+              (click)="toggleExpand(course)">
+              &#8964;
+            </button>
+
+            <button
+              type="button"
+              class="tc-delete-btn"
+              (click)="deleteCourse(course)">
+              x
+            </button>
+          </div>
+
+        </div>
+
+        <div class="tc-list-details" *ngIf="course.expanded">
+          <div class="tc-no-data" *ngIf="course.feeStructure.length === 0">
+            No fee structure available.
+          </div>
+          <table *ngIf="course.feeStructure.length > 0">
+            <thead>
+              <tr>
+                <th>Sr No</th>
+                <th>Fee Mode</th>
+                <th>Fee Amount</th>
+                <th>GST</th>
+                <th>Installments</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of course.feeStructure">
+                <td>{{ row.srNo }}</td>
+                <td>{{ row.feeMode }}</td>
+                <td>{{ row.feeAmount }}</td>
+                <td>{{ row.gst }}</td>
+                <td>{{ row.totalInstallments }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <div class="tc-no-data" *ngIf="courses.length === 0">
+        No training courses found.
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

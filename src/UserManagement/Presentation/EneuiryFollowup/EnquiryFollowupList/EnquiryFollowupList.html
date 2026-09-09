@@ -1,0 +1,82 @@
+<div class="enquiry-page">
+
+  <div class="page-header">
+    <h1>Enquiries</h1>
+  </div>
+
+  <div class="toolbar">
+    <button class="new-btn" type="button" (click)="newEnquiry()">
+      New Enquiry Form
+    </button>
+
+    <select [(ngModel)]="selectedBranch" class="branch-select">
+      <option value="">Select Branch</option>
+      <option *ngFor="let branch of branches" [value]="branch">
+        {{ branch }}
+      </option>
+    </select>
+
+    <button class="filter-btn" type="button" (click)="filterEnquiries()">
+      Filter
+    </button>
+
+    <button class="all-btn" type="button" (click)="loadEnquiries()">
+      All Enquiries
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Sr<br>No</th>
+            <th>Candidate<br>Name</th>
+            <th>Enquiry<br>Date</th>
+            <th>Qualification</th>
+            <th>Enquiry For</th>
+            <th>Lead Source</th>
+            <th>Interested Topics</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let enquiry of filteredEnquiries; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>{{ enquiry.candidateName }}</td>
+            <td>{{ enquiry.enquiryDate | date:'M/d/yyyy' }}</td>
+            <td>{{ enquiry.qualification }}</td>
+            <td>{{ enquiry.enquiryFor }}</td>
+            <td>{{ enquiry.leadSource }}</td>
+            <td>{{ enquiry.interestedTopics }}</td>
+            <td class="actions">
+              <button class="edit-btn" type="button" (click)="editEnquiry(enquiry)">
+                Edit
+              </button>
+
+              <button class="delete-btn" type="button" (click)="deleteEnquiry(enquiry)">
+                Delete
+              </button>
+
+              <button
+                *ngIf="enquiry.deletedAt"
+                class="restore-btn"
+                type="button"
+                (click)="restoreEnquiry(enquiry)">
+                Restore
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="filteredEnquiries.length === 0">
+            <td colspan="8" class="no-data">
+              No enquiries found.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

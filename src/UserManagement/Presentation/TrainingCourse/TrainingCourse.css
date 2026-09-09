@@ -1,0 +1,247 @@
+* {
+  box-sizing: border-box;
+}
+
+.tc-page {
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: #1f2933;
+}
+
+.tc-layout {
+  display: grid;
+  grid-template-columns: 460px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 991px) {
+  .tc-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== LEFT FORM CARD ===== */
+
+.tc-form-card {
+  border: 1px solid #e2e9e5;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(15, 46, 34, 0.05);
+}
+
+.tc-card-header {
+  background: #f4f5f7;
+  border-bottom: 1px solid #e2e9e5;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 14px 18px;
+}
+
+.tc-card-body {
+  padding: 18px;
+}
+
+.tc-card-footer {
+  background: #f4f5f7;
+  border-top: 1px solid #e2e9e5;
+  padding: 12px 18px;
+}
+
+.tc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.tc-field label {
+  font-size: 13px;
+  color: #3856c9;
+  font-weight: 500;
+}
+
+.tc-field input,
+.tc-field select {
+  border: 1px solid #cfd6dc;
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-size: 14px;
+  width: 100%;
+}
+
+.tc-field input:focus,
+.tc-field select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+}
+
+.tc-fee-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 0.7fr 0.9fr auto;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.tc-field-sm input {
+  width: 100%;
+}
+
+.tc-add-btn {
+  height: 38px;
+  width: 38px;
+  border: none;
+  border-radius: 4px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.tc-add-btn:hover {
+  background: #1d4ed8;
+}
+
+.tc-table-wrapper {
+  border: 1px solid #e2e9e5;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.tc-table-wrapper table,
+.tc-list-details table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.tc-table-wrapper th,
+.tc-list-details th {
+  background: #f4f5f7;
+  text-align: left;
+  font-weight: 700;
+  padding: 8px 10px;
+  border-bottom: 1px solid #e2e9e5;
+  white-space: nowrap;
+}
+
+.tc-table-wrapper td,
+.tc-list-details td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #eef1f0;
+}
+
+.tc-row-action {
+  text-align: center;
+  width: 36px;
+}
+
+.tc-row-delete {
+  border: none;
+  background: #dc2626;
+  color: #ffffff;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tc-row-delete:hover {
+  background: #b91c1c;
+}
+
+.tc-submit-btn {
+  border: none;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 9px 22px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.tc-submit-btn:hover {
+  background: #1d4ed8;
+}
+
+.tc-no-data {
+  text-align: center;
+  color: #94a3ab;
+  padding: 14px;
+  font-size: 13px;
+}
+
+/* ===== RIGHT COURSE LIST ===== */
+
+.tc-list-card {
+  border: 1px solid #e2e9e5;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(15, 46, 34, 0.05);
+  max-height: 640px;
+  overflow-y: auto;
+}
+
+.tc-list {
+  border-bottom: 1px solid #eef1f0;
+}
+
+.tc-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+}
+
+.tc-course-name {
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.tc-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tc-expand-btn {
+  border: none;
+  background: transparent;
+  color: #4b5563;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.tc-expand-btn.tc-expanded {
+  transform: rotate(180deg);
+}
+
+.tc-delete-btn {
+  border: none;
+  background: #dc2626;
+  color: #ffffff;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.tc-delete-btn:hover {
+  background: #b91c1c;
+}
+
+.tc-list-details {
+  padding: 0 20px 16px 20px;
+}

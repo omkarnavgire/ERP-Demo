@@ -1,0 +1,126 @@
+.enquiry-page {
+  padding: 18px 28px;
+  font-family: Arial, sans-serif;
+  color: #111;
+}
+
+.page-header h1 {
+  margin: 0 0 24px;
+  font-size: 34px;
+  font-weight: 500;
+}
+
+.toolbar {
+  display: grid;
+  grid-template-columns: 256px 385px 100px 185px;
+  gap: 16px;
+  align-items: center;
+  margin: 0 0 42px;
+}
+
+.toolbar button,
+.branch-select {
+  height: 63px;
+  border-radius: 7px;
+  border: 1px solid #ddd;
+  font-size: 25px;
+  padding: 0 20px;
+}
+
+.new-btn {
+  background: #ffbd0a;
+  border: none !important;
+}
+
+.branch-select {
+  background: #fff;
+}
+
+.filter-btn {
+  background: #1677f2;
+  color: #fff;
+  border: none !important;
+}
+
+.all-btn {
+  background: #17c2df;
+  color: #111;
+  border: none !important;
+}
+
+.table-card {
+  width: 100%;
+  overflow: hidden;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  min-width: 1250px;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+th {
+  text-align: left;
+  font-size: 20px;
+  padding: 12px 12px 16px;
+  border-bottom: 1px solid #222;
+  vertical-align: bottom;
+}
+
+td {
+  font-size: 18px;
+  padding: 17px 12px;
+  border-bottom: 1px solid #ddd;
+  vertical-align: top;
+  line-height: 1.55;
+}
+
+.actions {
+  white-space: nowrap;
+}
+
+.actions button {
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  margin-right: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.edit-btn {
+  background: #1677f2;
+  color: #fff;
+}
+
+.delete-btn {
+  background: #dc3545;
+  color: #fff;
+}
+
+.restore-btn {
+  background: #20a464;
+  color: #fff;
+}
+
+.no-data {
+  text-align: center;
+  padding: 30px;
+}
+
+@media (max-width: 900px) {
+  .toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar button,
+  .branch-select {
+    width: 100%;
+  }
+}
