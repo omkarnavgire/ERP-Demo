@@ -1,8 +1,7 @@
-import { InjectionToken } from '@angular/core';
+import {InjectionToken} from '@angular/core';
+import {EnquiryFollowupRepositories} from '../Enquiryfollowuprepositories';
 
-import { EnquiryFollowupRepositories } from '../Enquiryfollowuprepositories';
-
-export const ENQUIRY_FOLOWUP_REPOSITORY =
-  new InjectionToken<EnquiryFollowupRepositories>(
-    'ENQUIRY_FOLOWUP_REPOSITORY'
-  );
+export const ENQUIRY_FOLLOWUP_REPOSITORY=
+    new InjectionToken<EnquiryFollowupRepositories>(
+        'ENQUIRY_FOLLOWUP_REPOSITORY'
+    );

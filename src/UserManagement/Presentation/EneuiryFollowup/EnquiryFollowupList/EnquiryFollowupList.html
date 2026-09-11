@@ -1,82 +1,144 @@
 <div class="enquiry-page">
-
-  <div class="page-header">
-    <h1>Enquiries</h1>
-  </div>
-
-  <div class="toolbar">
-    <button class="new-btn" type="button" (click)="newEnquiry()">
-      New Enquiry Form
-    </button>
-
-    <select [(ngModel)]="selectedBranch" class="branch-select">
-      <option value="">Select Branch</option>
-      <option *ngFor="let branch of branches" [value]="branch">
-        {{ branch }}
-      </option>
-    </select>
-
-    <button class="filter-btn" type="button" (click)="filterEnquiries()">
-      Filter
-    </button>
-
-    <button class="all-btn" type="button" (click)="loadEnquiries()">
-      All Enquiries
-    </button>
-  </div>
-
-  <div class="table-card">
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Sr<br>No</th>
-            <th>Candidate<br>Name</th>
-            <th>Enquiry<br>Date</th>
-            <th>Qualification</th>
-            <th>Enquiry For</th>
-            <th>Lead Source</th>
-            <th>Interested Topics</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr *ngFor="let enquiry of filteredEnquiries; let i = index">
-            <td>{{ i + 1 }}</td>
-            <td>{{ enquiry.candidateName }}</td>
-            <td>{{ enquiry.enquiryDate | date:'M/d/yyyy' }}</td>
-            <td>{{ enquiry.qualification }}</td>
-            <td>{{ enquiry.enquiryFor }}</td>
-            <td>{{ enquiry.leadSource }}</td>
-            <td>{{ enquiry.interestedTopics }}</td>
-            <td class="actions">
-              <button class="edit-btn" type="button" (click)="editEnquiry(enquiry)">
-                Edit
-              </button>
-
-              <button class="delete-btn" type="button" (click)="deleteEnquiry(enquiry)">
-                Delete
-              </button>
-
-              <button
-                *ngIf="enquiry.deletedAt"
-                class="restore-btn"
-                type="button"
-                (click)="restoreEnquiry(enquiry)">
-                Restore
-              </button>
-            </td>
-          </tr>
-
-          <tr *ngIf="filteredEnquiries.length === 0">
-            <td colspan="8" class="no-data">
-              No enquiries found.
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="page-header">
+        <h1>Enquiries</h1>
     </div>
-  </div>
 
+    <div class="toolbar">
+        <button class="new-btn" type="button" (click)="newEnquiry()">New Enquiry Form</button>
+        <input type="text" class="search-input" placeholder="Search Enquiry..." [(ngModel)]="searchText" (input)="applyFilters()">
+        <input type="date" class="date-input" [(ngModel)]="fromDate" (change)="applyFilters()">
+        <input type="date" class="date-input" [(ngModel)]="toDate" (change)="applyFilters()">
+
+        <select [(ngModel)]="selectedBranch" class="branch-select" (change)="applyFilters()">
+            <option value="">Select Branch</option>
+            <option *ngFor="let branch of branches" [value]="branch">{{branch}}</option>
+        </select>
+
+        <button class="filter-btn" type="button" (click)="applyFilters()">Filter</button>
+        <button class="all-btn" type="button" (click)="clearFilters()">All Enquiries</button>
+        <button class="export-btn" type="button" (click)="exportExcel()">Export Excel</button>
+    </div>
+
+    <div class="table-card">
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sr<br>No</th>
+
+                        <th>
+                            <div class="th-title" (click)="toggleFilter('candidateName')">
+                                Candidate<br>Name
+                                <span>▼</span>
+                            </div>
+                            <div class="header-filter" *ngIf="openFilterColumn==='candidateName'">
+                                <div class="filter-title">Filter</div>
+                                <label *ngFor="let value of getFilterValues('candidateName')">
+                                    <input type="checkbox" [checked]="isFilterSelected('candidateName',value)" (change)="toggleColumnFilter('candidateName',value)">
+                                    {{value}}
+                                </label>
+                                <button type="button" (click)="clearColumnFilter('candidateName')">Clear</button>
+                            </div>
+                        </th>
+
+                        <th>
+                            <div class="th-title" (click)="toggleFilter('enquiryDate')">
+                                Enquiry<br>Date
+                                <span>▼</span>
+                            </div>
+                            <div class="header-filter" *ngIf="openFilterColumn==='enquiryDate'">
+                                <div class="filter-title">Filter</div>
+                                <label *ngFor="let value of getFilterValues('enquiryDate')">
+                                    <input type="checkbox" [checked]="isFilterSelected('enquiryDate',value)" (change)="toggleColumnFilter('enquiryDate',value)">
+                                    {{value | date:'M/d/yyyy'}}
+                                </label>
+                                <button type="button" (click)="clearColumnFilter('enquiryDate')">Clear</button>
+                            </div>
+                        </th>
+
+                        <th>
+                            <div class="th-title" (click)="toggleFilter('qualification')">
+                                Qualification
+                                <span>▼</span>
+                            </div>
+                            <div class="header-filter" *ngIf="openFilterColumn==='qualification'">
+                                <div class="filter-title">Filter</div>
+                                <label *ngFor="let value of getFilterValues('qualification')">
+                                    <input type="checkbox" [checked]="isFilterSelected('qualification',value)" (change)="toggleColumnFilter('qualification',value)">
+                                    {{value}}
+                                </label>
+                                <button type="button" (click)="clearColumnFilter('qualification')">Clear</button>
+                            </div>
+                        </th>
+
+                        <th>
+                            <div class="th-title" (click)="toggleFilter('enquiryFor')">
+                                Enquiry For
+                                <span>▼</span>
+                            </div>
+                            <div class="header-filter" *ngIf="openFilterColumn==='enquiryFor'">
+                                <div class="filter-title">Filter</div>
+                                <label *ngFor="let value of getFilterValues('enquiryFor')">
+                                    <input type="checkbox" [checked]="isFilterSelected('enquiryFor',value)" (change)="toggleColumnFilter('enquiryFor',value)">
+                                    {{value}}
+                                </label>
+                                <button type="button" (click)="clearColumnFilter('enquiryFor')">Clear</button>
+                            </div>
+                        </th>
+
+                        <th>
+                            <div class="th-title" (click)="toggleFilter('leadSources')">
+                                Lead Source
+                                <span>▼</span>
+                            </div>
+                            <div class="header-filter" *ngIf="openFilterColumn==='leadSources'">
+                                <div class="filter-title">Filter</div>
+                                <label *ngFor="let value of getFilterValues('leadSources')">
+                                    <input type="checkbox" [checked]="isFilterSelected('leadSources',value)" (change)="toggleColumnFilter('leadSources',value)">
+                                    {{value}}
+                                </label>
+                                <button type="button" (click)="clearColumnFilter('leadSources')">Clear</button>
+                            </div>
+                        </th>
+
+                        <th>
+                            <div class="th-title" (click)="toggleFilter('interestedTopics')">
+                                Interested Topics
+                                <span>▼</span>
+                            </div>
+                            <div class="header-filter" *ngIf="openFilterColumn==='interestedTopics'">
+                                <div class="filter-title">Filter</div>
+                                <label *ngFor="let value of getFilterValues('interestedTopics')">
+                                    <input type="checkbox" [checked]="isFilterSelected('interestedTopics',value)" (change)="toggleColumnFilter('interestedTopics',value)">
+                                    {{value}}
+                                </label>
+                                <button type="button" (click)="clearColumnFilter('interestedTopics')">Clear</button>
+                            </div>
+                        </th>
+
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr *ngFor="let enquiry of filteredEnquiries;let i=index">
+                        <td>{{i+1}}</td>
+                        <td>{{enquiry.candidateName}}</td>
+                        <td>{{enquiry.enquiryDate | date:'M/d/yyyy'}}</td>
+                        <td>{{enquiry.qualification}}</td>
+                        <td>{{enquiry.enquiryFor}}</td>
+                        <td>{{enquiry.leadSources}}</td>
+                        <td>{{enquiry.interestedTopics}}</td>
+                        <td class="actions">
+                            <button class="followup-btn" type="button" (click)="openFollowup(enquiry)">Followup</button>
+                        </td>
+                    </tr>
+
+                    <tr *ngIf="filteredEnquiries.length===0">
+                        <td colspan="8" class="no-data">No enquiries found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

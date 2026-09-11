@@ -1,31 +1,42 @@
-import { inject, Injectable } from "@angular/core";
-import { EnquiryFollowupRepositories } from "../../Domain/Repositories/Enquiryfollowuprepositories";
-import { EnquiryFollowupApi } from "../Api/EnquiryFollowupApi";
-import { Observable } from "rxjs";
-import { EnquiryFollowup } from "../../Domain/Entities/Enquiryfollowup";
+import {Injectable,inject} from "@angular/core";
+import {Observable} from "rxjs";
+import {Enquiry} from "../../Domain/Entities/Enquiry";
+import {EnquiryRepository} from "../../Domain/Repositories/Enquiryrepositories";
+import {EnquiryApi} from "../Api/EnquiryApi";
+
 @Injectable({
-    providedIn:'root'
+    providedIn:"root"
 })
-export class EnquiryRepositoriesimple implements EnquiryFollowupRepositories{
-    private api = inject(EnquiryFollowupApi)
-    
-    getFollowups(): Observable<EnquiryFollowup[]> {
-        return this.api.getFollowups();
-    }
-    getFollowupById(id: number): Observable<EnquiryFollowup> {
-        return this.api.getFollowupById(id);
-    }
-    createFollowup(followup: EnquiryFollowup): Observable<EnquiryFollowup> {
-        return this.api.createFollowup(followup);
-    }
-    updateFollowup(id: number, followup: EnquiryFollowup): Observable<EnquiryFollowup> {
-        return this.api.updateFollowup(id,followup);
-    }
-    deleteFollowup(id: number): Observable<void> {
-        return this.api.deleteFollowup(id);
-    }
-    restoreFollowup(id: number): Observable<void> {
-        return this.api.restoreFollowup(id);
+export class EnquiryRepositoryImpl extends EnquiryRepository {
+    private api=inject(EnquiryApi);
+
+    override getEnquiries():Observable<Enquiry[]> {
+        console.log("Enquiry Repository: Get all");
+        return this.api.getEnquiries();
     }
 
+    override getEnquiryById(id:number):Observable<Enquiry> {
+        console.log("Enquiry Repository: Get by ID:",id);
+        return this.api.getEnquiryById(id);
+    }
+
+    override createEnquiry(enquiry:Enquiry):Observable<Enquiry> {
+        console.log("Enquiry Repository: Create:",enquiry);
+        return this.api.createEnquiry(enquiry);
+    }
+
+    override updateEnquiry(id:number,enquiry:Enquiry):Observable<Enquiry> {
+        console.log("Enquiry Repository: Update:",id,enquiry);
+        return this.api.updateEnquiry(id,enquiry);
+    }
+
+    override deleteEnquiry(id:number):Observable<void> {
+        console.log("Enquiry Repository: Delete:",id);
+        return this.api.deleteEnquiry(id);
+    }
+
+    override restoreEnquiry(id:number):Observable<void> {
+        console.log("Enquiry Repository: Restore:",id);
+        return this.api.restoreEnquiry(id);
+    }
 }

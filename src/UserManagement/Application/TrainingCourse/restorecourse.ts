@@ -1,19 +1,17 @@
-import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import {Injectable} from "@angular/core";
+import {Observable} from "rxjs";
+import {TrainingCourseRepositorySimple} from "../../Infrastructure/Repositories/Trainingcourserepositoriesimpl";
 
-import { TrainingCourse } from '../../Domain/Entities/TrainingCourse';
-import { TrainingCourseRepositorySimple } from '../../Infrastructure/Repositories/Trainingcourserepositoriesimpl';
 @Injectable({
-  providedIn: 'root'
+    providedIn:"root"
 })
-export class GetCourse {
+export class RestoreCourse {
+    constructor(
+        private trainingCourseRepository:TrainingCourseRepositorySimple
+    ){}
 
-  constructor(
-    private trainingCourseRepository: TrainingCourseRepositorySimple
-  ) {}
-
-  execute(): Observable<TrainingCourse[]> {
-
-    return this.trainingCourseRepository.getTrainingCourses();
-  }
+    execute(id:number):Observable<void> {
+        console.log("Restore Course use case:",id);
+        return this.trainingCourseRepository.restoreTrainingCourse(id);
+    }
 }

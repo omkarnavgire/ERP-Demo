@@ -2,12 +2,14 @@ export interface Lead{
     leadId:number;
     candidateName:string;
     emailAddress:string;
-    mobileNumber:number;
+    mobileNumber:string;
     trainingType:string;
     description:string;
+    status:string;
     leadDate:Date;
-    createdAt:Date;
-    updatedAt:null;
-    deletedAt:null;
-    restoredAt:null;
+    sourceId:number;
+    createdAt?:Date;
+    updatedAt?:Date;
+    deletedAt?:Date|null;
+    restoredAt?:Date|null;
 }
