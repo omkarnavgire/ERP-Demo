@@ -1,9 +1,280 @@
-import { Component } from "@angular/core";
+import {Component,ChangeDetectorRef,inject} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {Router} from '@angular/router';
+import {Lead} from '../../Domain/Entities/Lead';
+import {LeadApplication} from '../../Application/Lead/LeadApplication';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 @Component({
-    selector: 'app-lead',
-    standalone: true,
-    templateUrl: './Lead.html'
+    selector:'app-lead',
+    standalone:true,
+    imports:[CommonModule,FormsModule],
+    templateUrl:'./Lead.html',
+    styleUrl:'./Lead.css'
 })
-export class LeadComponent {
+export class LeadComponent{
+    private leadApplication=inject(LeadApplication);
+    private cdr=inject(ChangeDetectorRef);
+    private router=inject(Router);
+
+    leads:Lead[]=[];
+    filteredLeads:Lead[]=[];
+    searchText='';
+    statusFilter='';
+    trainingTypeFilter='';
+    dateFrom='';
+    dateTo='';
+    leadDateValue='';
+    openFilterColumn='';
+    showAddForm=false;
+    showExportMenu=false;
+    loading=false;
+
+    leadForm:Lead={
+        leadId:0,
+        candidateName:'',
+        emailAddress:'',
+        mobileNumber:'',
+        trainingType:'Online',
+        description:'',
+        status:'New',
+        leadDate:new Date(),
+        sourceId:0,
+        sourceName:''
+    };
+
+    ngOnInit():void{
+        this.setCurrentDate();
+        this.loadLeads();
+    }
+
+    setCurrentDate():void{
+        const date=new Date();
+        this.leadDateValue=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    }
+
+    loadLeads():void{
+        this.loading=true;
+        console.log('Lead Component: Loading all leads');
+        this.leadApplication.getAll().subscribe({
+            next:(response)=>{
+                console.log('Lead API response:',response);
+                this.leads=response||[];
+                this.applyFilters();
+                this.loading=false;
+                this.cdr.detectChanges();
+            },
+            error:(error)=>{
+                console.error('Lead API error:',error);
+                this.loading=false;
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    applyFilters():void{
+        const search=this.searchText.trim().toLowerCase();
+
+        this.filteredLeads=this.leads.filter(lead=>{
+            const matchesSearch=!search||
+                (lead.candidateName||'').toLowerCase().includes(search)||
+                (lead.emailAddress||'').toLowerCase().includes(search)||
+                (lead.mobileNumber||'').toLowerCase().includes(search);
+
+            const matchesStatus=!this.statusFilter||lead.status===this.statusFilter;
+            const matchesTraining=!this.trainingTypeFilter||lead.trainingType===this.trainingTypeFilter;
+
+            const leadDate=new Date(lead.leadDate);
+            leadDate.setHours(0,0,0,0);
+
+            const fromDate=this.dateFrom?new Date(this.dateFrom):null;
+            const toDate=this.dateTo?new Date(this.dateTo):null;
+
+            if(fromDate)fromDate.setHours(0,0,0,0);
+            if(toDate)toDate.setHours(23,59,59,999);
+
+            const matchesFrom=!fromDate||leadDate>=fromDate;
+            const matchesTo=!toDate||leadDate<=toDate;
+
+            return matchesSearch&&matchesStatus&&matchesTraining&&matchesFrom&&matchesTo;
+        });
+    }
+
+    clearFilters():void{
+        this.searchText='';
+        this.statusFilter='';
+        this.trainingTypeFilter='';
+        this.dateFrom='';
+        this.dateTo='';
+        this.applyFilters();
+    }
+
+    toggleFilter(column:string):void{
+        this.openFilterColumn=this.openFilterColumn===column?'':column;
+    }
+
+    applyDateFilter():void{
+        this.applyFilters();
+        this.openFilterColumn='';
+    }
+
+    clearDateFilter():void{
+        this.dateFrom='';
+        this.dateTo='';
+        this.applyFilters();
+    }
+
+    openAddLead():void{
+        this.setCurrentDate();
+
+        this.leadForm={
+            leadId:0,
+            candidateName:'',
+            emailAddress:'',
+            mobileNumber:'',
+            trainingType:'Online',
+            description:'',
+            status:'New',
+            leadDate:this.createLocalDate(this.leadDateValue),
+            sourceId:0,
+            sourceName:''
+        };
+
+        this.showAddForm=true;
+    }
+
+    closeAddLead():void{
+        this.showAddForm=false;
+    }
+
+    createLead():void{
+        this.leadForm.status='New';
+        this.leadForm.leadDate=this.createLocalDate(this.leadDateValue);
+
+        console.log('Creating Lead:',this.leadForm);
+
+        this.leadApplication.create(this.leadForm).subscribe({
+            next:(response)=>{
+                console.log('Create Lead API response:',response);
+                this.showAddForm=false;
+                this.loadLeads();
+            },
+            error:(error)=>{
+                console.error('Create Lead API error:',error);
+            }
+        });
+    }
+
+    createLocalDate(value:string):Date{
+        const [year,month,day]=value.split('-').map(Number);
+        return new Date(year,month-1,day);
+    }
+
+    followup(lead:Lead):void{
+        console.log('Lead Followup clicked:',lead);
+        this.router.navigate(['/main/lead/followup',lead.leadId]);
+    }
+
+    getStatusClass(status:string):string{
+        return (status||'').toLowerCase().replace(/\s+/g,'-');
+    }
+
+    toggleExportMenu():void{
+        this.showExportMenu=!this.showExportMenu;
+    }
+
+    exportExcel():void{
+        console.log('Exporting filtered leads to Excel:',this.filteredLeads);
+
+        const data=this.filteredLeads.map((lead,index)=>({
+            'Sr. No.':index+1,
+            ID:lead.leadId,
+            'Candidate Name':lead.candidateName,
+            Email:lead.emailAddress,
+            Mobile:lead.mobileNumber,
+            'Training Type':lead.trainingType,
+            Status:lead.status,
+            'Lead Date':this.formatDate(lead.leadDate),
+            'Source ID':lead.sourceId,
+            Description:lead.description
+        }));
+
+        const worksheet=XLSX.utils.json_to_sheet(data);
+        const workbook=XLSX.utils.book_new();
+
+        XLSX.utils.book_append_sheet(workbook,worksheet,'Leads');
+        XLSX.writeFile(workbook,`Leads_${this.getFileDate()}.xlsx`);
+
+        this.showExportMenu=false;
+    }
+
+    exportPdf():void{
+        console.log('Exporting filtered leads to PDF:',this.filteredLeads);
+
+        const doc=new jsPDF('l','mm','a4');
+
+        doc.setFontSize(16);
+        doc.text('Lead Report',14,15);
+
+        doc.setFontSize(9);
+        doc.text(`Total Leads: ${this.filteredLeads.length}`,14,22);
+
+        const rows=this.filteredLeads.map((lead,index)=>[
+            index+1,
+            lead.leadId,
+            lead.candidateName,
+            lead.emailAddress,
+            lead.mobileNumber,
+            lead.trainingType,
+            lead.status,
+            this.formatDate(lead.leadDate),
+            lead.sourceId
+        ]);
+
+        autoTable(doc,{
+            startY:28,
+            head:[[
+                'Sr. No.',
+                'ID',
+                'Candidate Name',
+                'Email',
+                'Mobile',
+                'Training Type',
+                'Status',
+                'Lead Date',
+                'Source ID'
+            ]],
+            body:rows,
+            theme:'grid',
+            styles:{
+                fontSize:8,
+                cellPadding:3
+            },
+            headStyles:{
+                fontSize:8
+            }
+        });
+
+        doc.save(`Leads_${this.getFileDate()}.pdf`);
+        this.showExportMenu=false;
+    }
+
+    formatDate(date:Date|string):string{
+        if(!date)return '';
+
+        const value=new Date(date);
+
+        if(isNaN(value.getTime()))return '';
+
+        return `${String(value.getDate()).padStart(2,'0')}-${String(value.getMonth()+1).padStart(2,'0')}-${value.getFullYear()}`;
+    }
+
+    getFileDate():string{
+        const date=new Date();
+
+        return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    }
 }

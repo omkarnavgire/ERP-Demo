@@ -1,35 +1,48 @@
-// import { inject, Injectable } from "@angular/core";
-// import { LeadApi } from "../Api/LeadApi";
-// import { Observable } from "rxjs";
-// import { Lead } from "../../Domain/Entities/Lead";
-// import { LeadRepository } from "../../Domain/Repositories/Leadrepository";
+import {Injectable,inject} from '@angular/core';
+import {Observable} from 'rxjs';
+import { LeadRepository } from '../../Domain/Repositories/Leadrepository';
+import {LeadApi} from '../Api/LeadApi';
+import {Lead} from '../../Domain/Entities/Lead';
 
-// @Injectable({
-//     providedIn:'root'
-// })
-// export class LeadRepositoryImple implements LeadRepository{
-//     private leadApi=inject(LeadApi);
 
-//     getLeads(): Observable<Lead[]>{
-//         return this.leadApi.getLeads();
-//     }
-//     getLeadById(id: number): Observable<Lead> {
-//         return this.leadApi.getLeadById(id);
-//     }
+@Injectable({
+    providedIn:'root'
+})
+export class LeadRepositoriesImpl implements LeadRepository{
+    private api=inject(LeadApi);
 
-//     createLead(lead: Lead): Observable<Lead> {
-//         return this.leadApi.createLead(lead);
-//     }
+    getLeads():Observable<Lead[]>{
+        console.log('Lead Repository: Get all');
+        return this.api.getLeads();
+    }
 
-//     updateLead(id: number, lead: Lead): Observable<Lead> {
-//         return this.leadApi.updateLead(id, lead);
-//     }
+    getLeadById(id:number):Observable<Lead>{
+        console.log('Lead Repository: Get by ID:',id);
+        return this.api.getLeadById(id);
+    }
 
-//     deleteLead(id: number): Observable<void> {
-//         return this.leadApi.deleteLead(id);
-//     }
+    getLeadsBySource(sourceId:number):Observable<Lead[]>{
+        console.log('Lead Repository: Get by Source ID:',sourceId);
+        return this.api.getLeadsBySource(sourceId);
+    }
 
-//     restoreLead(id: number): Observable<void> {
-//         return this.leadApi.restoreLead(id);
-//     }
-// }
+    createLead(lead:Lead):Observable<Lead>{
+        console.log('Lead Repository: Create:',lead);
+        return this.api.createLead(lead);
+    }
+
+    updateLead(id:number,lead:Lead):Observable<Lead>{
+        console.log('Lead Repository: Update:',id,lead);
+        return this.api.updateLead(id,lead);
+    }
+
+    deleteLead(id:number):Observable<void>{
+        console.log('Lead Repository: Delete:',id);
+        return this.api.deleteLead(id);
+    }
+
+    restoreLead(id:number):Observable<void>{
+        console.log('Lead Repository: Restore:',id);
+        return this.api.restoreLead(id);
+    }
+}

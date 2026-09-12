@@ -1,14 +1,12 @@
-export interface Lead{
+export interface LeadFollowup{
+    leadFollowupId:number;
     leadId:number;
     candidateName:string;
-    emailAddress:string;
-    mobileNumber:string;
-    trainingType:string;
+    followUpDate:Date;
+    followUpBy:string;
     description:string;
     status:string;
-    leadDate:Date;
-    sourceId:number;
-    sourceName:string;
+    nextFollowupDate:Date;
     createdAt?:Date;
     updatedAt?:Date;
     deletedAt?:Date|null;
