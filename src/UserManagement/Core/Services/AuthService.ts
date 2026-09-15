@@ -1,35 +1,32 @@
-import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
-
-import { TokenService } from './TokenService'; 
+import {Injectable} from "@angular/core";
+import {Router} from "@angular/router";
+import {TokenService} from "./TokenService";
+import {UserSessionService} from "./UserSessionService";
 
 @Injectable({
-  providedIn: 'root'
+    providedIn:'root'
 })
-export class AuthService {
+export class AuthService{
+    constructor(
+        private tokenService:TokenService,
+        private router:Router,
+        private userSessionService:UserSessionService
+    ){}
 
-  constructor(
-    private tokenService: TokenService,
-    private router: Router
-  ) {}
+    saveLoginData(accessToken:string,refreshToken:string):void{
+        this.tokenService.setAccessToken(accessToken);
+        this.tokenService.setRefreshToken(refreshToken);
+    }
 
-  saveLoginData(
-    accessToken: string,
-    refreshToken: string
-  ): void {
+    isLoggedIn():boolean{
+        return this.tokenService.isLoggedIn();
+    }
 
-    this.tokenService.setAccessToken(accessToken);
-    this.tokenService.setRefreshToken(refreshToken);
-  }
-
-  isLoggedIn(): boolean {
-    return this.tokenService.isLoggedIn();
-  }
-
-  logout(): void {
-
-    this.tokenService.clearToken();
-
-    this.router.navigate(['/login']);
-  }
+    logout():void{
+        console.log("Logging out user.");
+        this.tokenService.clearToken();
+        this.userSessionService.clear();
+        localStorage.removeItem("username");
+        this.router.navigate(["/login"]);
+    }
 }
