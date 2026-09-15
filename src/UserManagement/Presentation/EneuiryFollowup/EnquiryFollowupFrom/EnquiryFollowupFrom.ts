@@ -3,7 +3,7 @@ import {Component,OnInit,inject} from '@angular/core';
 import {FormBuilder,FormGroup,ReactiveFormsModule,Validators} from '@angular/forms';
 import {ActivatedRoute,Router,RouterLink} from '@angular/router';
 import {BranchApi} from '../../../Infrastructure/Api/BranchApi';
-import {GetCourse} from '../../../Application/TrainingCourse/grtcourse';
+import {TrainingCourse} from '../../../Application/TrainingCourse/TrainingCourse';
 import {EnquiryApplication} from '../../../Application/Enquiry/EnquiryApplication';
 
 @Component({
@@ -13,12 +13,12 @@ import {EnquiryApplication} from '../../../Application/Enquiry/EnquiryApplicatio
     templateUrl:'./EnquiryFollowupFrom.html',
     styleUrls:['./EnquiryFollowupFrom.css']
 })
-export class Enquiryform implements OnInit {
+export class Enquiryform implements OnInit{
     private fb=inject(FormBuilder);
     private router=inject(Router);
     private route=inject(ActivatedRoute);
     private branchApi=inject(BranchApi);
-    private getCourse=inject(GetCourse);
+    private trainingCourse=inject(TrainingCourse);
     private enquiryApplication=inject(EnquiryApplication);
 
     enquiryForm!:FormGroup;
@@ -32,12 +32,10 @@ export class Enquiryform implements OnInit {
     successmessage='';
 
     enquiryForOptions:string[]=['Job Placement','College Project','Upgrade Skill','Other','Real Time Project','AI','Certification','1','3'];
-
     qualifications:string[]=['10th','12th','Diploma','BA','BCA','BCOM','BSC','BE(CSE)','BE(IT)','MCA','MBA','MCS','MTECH','PHD','Other'];
-
     leadSourceOptions:string[]=['CIIT Student','Website','News Paper','Banner','Call','Online','Email','Other','string','Friend'];
 
-    ngOnInit():void {
+    ngOnInit():void{
         this.createForm();
         this.loadBranches();
         this.loadCourses();
@@ -51,7 +49,7 @@ export class Enquiryform implements OnInit {
         }
     }
 
-    createForm():void {
+    createForm():void{
         this.enquiryForm=this.fb.group({
             enquiryDate:[this.formatDateForInput(new Date()),Validators.required],
             branchId:['',Validators.required],
@@ -68,7 +66,7 @@ export class Enquiryform implements OnInit {
         });
     }
 
-    loadBranches():void {
+    loadBranches():void{
         this.branchesLoading=true;
 
         this.branchApi.getAllBranches().subscribe({
@@ -85,12 +83,11 @@ export class Enquiryform implements OnInit {
                     .filter((branch:any)=>branch.id>0&&branch.name.trim()!=='')
                     .filter((branch:any,index:number,array:any[])=>index===array.findIndex(item=>item.id===branch.id))
                     .sort((a:any,b:any)=>a.name.localeCompare(b.name));
-                console.log('Final Branch List:',this.branches);
+
                 console.log('Branch options loaded:',this.branches);
-                
                 this.branchesLoading=false;
             },
-            error:(error)=>{
+            error:(error:any)=>{
                 console.error('Branch loading error:',error);
                 this.branches=[];
                 this.branchesLoading=false;
@@ -99,10 +96,12 @@ export class Enquiryform implements OnInit {
         });
     }
 
-    loadCourses():void {
+    loadCourses():void{
         this.coursesLoading=true;
 
-        this.getCourse.execute().subscribe({
+        console.log('Loading courses from TrainingCourse Application');
+
+        this.trainingCourse.getAll().subscribe({
             next:(response:any)=>{
                 console.log('Course dropdown API response:',response);
 
@@ -120,7 +119,7 @@ export class Enquiryform implements OnInit {
                 console.log('Course options loaded:',this.courses);
                 this.coursesLoading=false;
             },
-            error:(error)=>{
+            error:(error:any)=>{
                 console.error('Course loading error:',error);
                 this.courses=[];
                 this.coursesLoading=false;
@@ -129,7 +128,7 @@ export class Enquiryform implements OnInit {
         });
     }
 
-    loadEnquiry(id:number):void {
+    loadEnquiry(id:number):void{
         console.log('Load Enquiry ID:',id);
 
         this.enquiryApplication.getById(id).subscribe({
@@ -137,14 +136,14 @@ export class Enquiryform implements OnInit {
                 console.log('Enquiry loaded:',response);
                 this.patchEnquiry(response);
             },
-            error:(error)=>{
+            error:(error:any)=>{
                 console.error('Enquiry loading error:',error);
                 this.errormessage=error?.error?.message||'Enquiry load failed.';
             }
         });
     }
 
-    patchEnquiry(data:any):void {
+    patchEnquiry(data:any):void{
         this.enquiryForm.patchValue({
             enquiryDate:this.formatDateForInput(data?.enquiryDate),
             branchId:data?.branchId??data?.branch?.branchId??'',
@@ -163,17 +162,15 @@ export class Enquiryform implements OnInit {
         console.log('Enquiry form patched:',this.enquiryForm.value);
     }
 
-    isSelected(controlName:string,item:string):boolean {
+    isSelected(controlName:string,item:string):boolean{
         const selected=this.enquiryForm.get(controlName)?.value||[];
         return selected.includes(item);
     }
 
-    toggleSelection(controlName:string,item:string):void {
+    toggleSelection(controlName:string,item:string):void{
         const control=this.enquiryForm.get(controlName);
 
-        if(!control){
-            return;
-        }
+        if(!control)return;
 
         const current:string[]=[...(control.value||[])];
 
@@ -187,83 +184,79 @@ export class Enquiryform implements OnInit {
         console.log('Selection changed:',controlName,control.value);
     }
 
-submit():void {
-    this.errormessage='';
-    this.successmessage='';
+    submit():void{
+        this.errormessage='';
+        this.successmessage='';
 
-    console.log('Form validity:',this.enquiryForm.valid);
-    console.log('Form value:',this.enquiryForm.value);
+        console.log('Form validity:',this.enquiryForm.valid);
+        console.log('Form value:',this.enquiryForm.value);
 
-    if(this.enquiryForm.invalid){
-        this.enquiryForm.markAllAsTouched();
-        console.log('Form is invalid:',this.enquiryForm.errors);
-        return;
-    }
+        if(this.enquiryForm.invalid){
+            this.enquiryForm.markAllAsTouched();
+            console.log('Form is invalid:',this.enquiryForm.errors);
+            return;
+        }
 
-    const formValue=this.enquiryForm.value;
+        const formValue=this.enquiryForm.value;
 
-    const enquiry:any={
-        enquiryDate:formValue.enquiryDate,
-        branchId:Number(formValue.branchId),
-        branchName:this.branches.find(branch=>branch.id===Number(formValue.branchId))?.name||'',
-        candidateName:formValue.candidateName,
-        gender:formValue.gender,
-        localAddress:formValue.localAddress,
-        emailAddress:formValue.emailAddress,
-        mobileNumber:formValue.mobileNumber,
-        birthDate:formValue.birthDate,
-        qualification:formValue.qualification,
-        enquiryFors:(formValue.enquiryFor||[]).join(','),
-        leadSources:(formValue.leadSource||[]).join(','),
-        interestedTopics:(formValue.interestedTopics||[]).join(','),
-        status:'New'
-    };
-
-    console.log(this.isEditMode?'Update Enquiry:':'Create Enquiry:',enquiry);
-
-    if(this.isEditMode&&this.enquiryId){
-        const updateRequest={
-            enquiryId:this.enquiryId,
-            ...enquiry
+        const enquiry:any={
+            enquiryDate:formValue.enquiryDate,
+            branchId:Number(formValue.branchId),
+            branchName:this.branches.find(branch=>branch.id===Number(formValue.branchId))?.name||'',
+            candidateName:formValue.candidateName,
+            gender:formValue.gender,
+            localAddress:formValue.localAddress,
+            emailAddress:formValue.emailAddress,
+            mobileNumber:formValue.mobileNumber,
+            birthDate:formValue.birthDate,
+            qualification:formValue.qualification,
+            enquiryFors:(formValue.enquiryFor||[]).join(','),
+            leadSources:(formValue.leadSource||[]).join(','),
+            interestedTopics:(formValue.interestedTopics||[]).join(','),
+            status:'New'
         };
 
-        this.enquiryApplication.update(this.enquiryId,updateRequest).subscribe({
+        console.log(this.isEditMode?'Update Enquiry:':'Create Enquiry:',enquiry);
+
+        if(this.isEditMode&&this.enquiryId){
+            const updateRequest={enquiryId:this.enquiryId,...enquiry};
+
+            this.enquiryApplication.update(this.enquiryId,updateRequest).subscribe({
+                next:(response)=>{
+                    console.log('Enquiry update successful:',response);
+                    alert('Enquiry updated successfully!');
+                    this.router.navigate(['/main/enquiry']);
+                },
+                error:(error:any)=>{
+                    console.error('Enquiry update error:',error);
+                    console.error('Backend error response:',error.error);
+                    this.errormessage=error?.error?.message||'Enquiry update failed.';
+                }
+            });
+
+            return;
+        }
+
+        this.enquiryApplication.create(enquiry).subscribe({
             next:(response)=>{
-                console.log('Enquiry update successful:',response);
-                alert('Enquiry updated successfully!');
+                console.log('Enquiry create successful:',response);
+                alert('Enquiry created successfully!');
                 this.router.navigate(['/main/enquiry']);
             },
-            error:(error)=>{
-                console.error('Enquiry update error:',error);
+            error:(error:any)=>{
+                console.error('Enquiry create error:',error);
                 console.error('Backend error response:',error.error);
-                this.errormessage=error?.error?.message||'Enquiry update failed.';
+                this.errormessage=error?.error?.message||'Enquiry creation failed.';
             }
         });
-
-        return;
     }
 
-    this.enquiryApplication.create(enquiry).subscribe({
-        next:(response)=>{
-            console.log('Enquiry create successful:',response);
-            alert('Enquiry created successfully!');
-            this.router.navigate(['/main/enquiry']);
-        },
-        error:(error)=>{
-            console.error('Enquiry create error:',error);
-            console.error('Backend error response:',error.error);
-            this.errormessage=error?.error?.message||'Enquiry creation failed.';
-        }
-    });
-}
-    getInvalidControls():string[] {
+    getInvalidControls():string[]{
         return Object.keys(this.enquiryForm.controls).filter(key=>this.enquiryForm.get(key)?.invalid);
     }
 
-    private toArray(value:any):string[] {
-        if(Array.isArray(value)){
-            return value;
-        }
+    private toArray(value:any):string[]{
+        if(Array.isArray(value))return value;
 
         if(typeof value==='string'&&value.trim()){
             return value.split(',').map(x=>x.trim()).filter(x=>x);
@@ -272,16 +265,12 @@ submit():void {
         return [];
     }
 
-    private formatDateForInput(value:any):string {
-        if(!value){
-            return '';
-        }
+    private formatDateForInput(value:any):string{
+        if(!value)return '';
 
         const date=new Date(value);
 
-        if(isNaN(date.getTime())){
-            return '';
-        }
+        if(isNaN(date.getTime()))return '';
 
         return date.toISOString().substring(0,10);
     }

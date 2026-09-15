@@ -1,39 +1,42 @@
-import { Injectable } from "@angular/core";
-import { TrainingCourseRepository } from "../../Domain/Repositories/Traingingcourserepositories";
-import { TrainingCourseApi } from "../Api/TrainingCourseApi";
-import { Observable } from "rxjs";
-import { TrainingCourse } from "../../Domain/Entities/TrainingCourse";
+import {Injectable,inject} from "@angular/core";
+import {Observable} from "rxjs";
+import {TrainingCourseRepository} from "../../Domain/Repositories/Traingingcourserepositories";
+import {TrainingCourseApi} from "../Api/TrainingCourseApi";
+import {TrainingCourse} from "../../Domain/Entities/TrainingCourse";
 
 @Injectable({
-    providedIn:'root'
+    providedIn:"root"
 })
-export class TrainingCourseRepositorySimple implements TrainingCourseRepository{
-    constructor(
-        
-        private trainingCourseApi : TrainingCourseApi
-    ){}
+export class TrainingCourseRepositoryImpl implements TrainingCourseRepository{
+    private api=inject(TrainingCourseApi);
 
-    getTrainingCourses(): Observable<TrainingCourse[]> {
-        return this.trainingCourseApi.getTrainingCourses()
+    getTrainingCourses():Observable<TrainingCourse[]>{
+        console.log("Training Course Repository: Get all");
+        return this.api.getTrainingCourses();
     }
 
-    getTrainingCourseById(id: number): Observable<TrainingCourse> {
-        return this.trainingCourseApi.getTrainingCourseById(id);
+    getTrainingCourseById(id:number):Observable<TrainingCourse>{
+        console.log("Training Course Repository: Get by ID:",id);
+        return this.api.getTrainingCourseById(id);
     }
 
-    createTrainingCourse(trainingCourse: TrainingCourse): Observable<TrainingCourse> {
-        return this.trainingCourseApi.createTrainingCourse(trainingCourse);
-    }
-    updateTrainingCourse(id: number, trainingCourse: TrainingCourse): Observable<TrainingCourse> {
-        return this.trainingCourseApi.updateTrainingCourse(id,trainingCourse);
+    createTrainingCourse(trainingCourse:TrainingCourse):Observable<TrainingCourse>{
+        console.log("Training Course Repository: Create:",trainingCourse);
+        return this.api.createTrainingCourse(trainingCourse);
     }
 
-    deleteTrainingCourse(id: number): Observable<void> {
-        return this.trainingCourseApi.deleteTrainingCourse(id);
-    }
-    restoreTrainingCourse(id: number): Observable<void> {
-        return this.trainingCourseApi.restoreTrainingCourse(id);
+    updateTrainingCourse(id:number,trainingCourse:TrainingCourse):Observable<TrainingCourse>{
+        console.log("Training Course Repository: Update:",id,trainingCourse);
+        return this.api.updateTrainingCourse(id,trainingCourse);
     }
 
+    deleteTrainingCourse(id:number):Observable<void>{
+        console.log("Training Course Repository: Delete:",id);
+        return this.api.deleteTrainingCourse(id);
+    }
 
+    restoreTrainingCourse(id:number):Observable<void>{
+        console.log("Training Course Repository: Restore:",id);
+        return this.api.restoreTrainingCourse(id);
+    }
 }

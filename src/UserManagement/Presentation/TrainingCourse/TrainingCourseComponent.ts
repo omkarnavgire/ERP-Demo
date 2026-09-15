@@ -1,242 +1,370 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TrainingCourse as TrainingCourseEntity } from '../../Domain/Entities/TrainingCourse';
-import { GetCourse } from '../../Application/TrainingCourse/grtcourse';
-import { CreateCourse } from '../../Application/TrainingCourse/createcourse';
-import { UpdateCourse } from '../../Application/TrainingCourse/updatecourse';
-import { DeleteCourse } from '../../Application/TrainingCourse/deletecourse';
-import { RestoreCourse } from '../../Application/TrainingCourse/restorecourse';
-
-export interface FeeStructureRow {
-  srNo: number;
-  feeMode: string;
-  feeAmount: number;
-  gst: number;
-  totalInstallments: number;
-}
-
-interface TrainingCourseViewModel extends TrainingCourseEntity {
-  feeStructure: FeeStructureRow[];
-  expanded?: boolean;
-}
+import {CommonModule} from '@angular/common';
+import {Component,OnInit,inject} from '@angular/core';
+import {FormBuilder,FormGroup,ReactiveFormsModule,Validators,FormsModule} from '@angular/forms';
+import {TrainingCourse as TrainingCourseEntity} from '../../Domain/Entities/TrainingCourse';
+import {TrainingCourse as TrainingCourseApplication} from '../../Application/TrainingCourse/TrainingCourse';
 
 @Component({
-  selector: 'app-training-course',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './TrainingCourse.html',
-  styleUrls: ['./TrainingCourse.css']
+    selector:'app-training-course',
+    standalone:true,
+    imports:[CommonModule,ReactiveFormsModule,FormsModule],
+    templateUrl:'./TrainingCourse.html',
+    styleUrls:['./TrainingCourse.css']
 })
-export class TrainingCourseComponent implements OnInit {
-  private fb = inject(FormBuilder);
-  private getCourse = inject(GetCourse);
-  private createCourse = inject(CreateCourse);
-  private updateCourse = inject(UpdateCourse);
-  private deleteCourseUseCase = inject(DeleteCourse);
-  private restoreCourseUseCase = inject(RestoreCourse);
+export class TrainingCourseComponent implements OnInit{
+    private fb=inject(FormBuilder);
+    private trainingCourseApplication=inject(TrainingCourseApplication);
 
-  courseForm!: FormGroup;
-  feeRowForm!: FormGroup;
+    courseForm!:FormGroup;
+    courses:TrainingCourseEntity[]=[];
+    filteredCourses:TrainingCourseEntity[]=[];
+    paginatedCourses:TrainingCourseEntity[]=[];
 
-  feeModes: string[] = [
-    'One Time',
-    'Installments',
-    'EMI',
-    'Cash',
-    'Online'
-  ];
+    searchText='';
+    editingId:number|null=null;
+    showCourseModal=false;
 
-  feeRows: FeeStructureRow[] = [];
-  courses: TrainingCourseViewModel[] = [];
-  loading = false;
+    currentPage=1;
+    pageSize=10;
+    totalPages=1;
+    pageNumbers:number[]=[];
 
-  ngOnInit(): void {
-    this.createForms();
-    this.loadCourses();
-  }
+    loading=false;
+    submitting=false;
+    errorMessage='';
+    successMessage='';
 
-  createForms(): void {
-    this.courseForm = this.fb.group({
-      courseName: ['', Validators.required]
-    });
-
-    this.feeRowForm = this.fb.group({
-      feeMode: ['', Validators.required],
-      feeAmount: [null, [Validators.required, Validators.min(0)]],
-      gst: [null, [Validators.min(0)]],
-      installments: [null, [Validators.required, Validators.min(1)]]
-    });
-  }
-
-  loadCourses(): void {
-    this.loading = true;
-
-    this.getCourse.execute().subscribe({
-      next: (response) => {
-        console.log('Training Courses API Response:', response);
-
-        this.courses = response.map(course => ({
-          ...course,
-          feeStructure: [],
-          expanded: false
-        }));
-
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Training Courses Load Error:', error);
-        this.loading = false;
-      }
-    });
-  }
-
-  addFeeRow(): void {
-    if (this.feeRowForm.invalid) {
-      this.feeRowForm.markAllAsTouched();
-      return;
+    ngOnInit():void{
+        this.createForm();
+        this.loadCourses();
     }
 
-    const value = this.feeRowForm.value;
-
-    const row: FeeStructureRow = {
-      srNo: this.feeRows.length + 1,
-      feeMode: value.feeMode,
-      feeAmount: Number(value.feeAmount),
-      gst: Number(value.gst ?? 0),
-      totalInstallments: Number(value.installments)
-    };
-
-    this.feeRows.push(row);
-
-    console.log('Fee Structure Row Added:', row);
-
-    this.feeRowForm.reset();
-  }
-
-  removeFeeRow(row: FeeStructureRow): void {
-    this.feeRows = this.feeRows
-      .filter(x => x !== row)
-      .map((x, index) => ({
-        ...x,
-        srNo: index + 1
-      }));
-
-    console.log('Fee Structure Row Removed:', row);
-  }
-
-  submit(): void {
-    if (this.courseForm.invalid) {
-      this.courseForm.markAllAsTouched();
-      return;
+    createForm():void{
+        this.courseForm=this.fb.group({
+            courseId:[0],
+            courseName:['',[Validators.required,Validators.minLength(2)]],
+            feesAmount:[null,[Validators.required,Validators.min(0)]],
+            feesChangeDate:[''],
+            installmentPercentage:[null,[Validators.min(0),Validators.max(100)]]
+        });
     }
 
-    if (this.feeRows.length === 0) {
-      alert('Please add at least one fee structure row.');
-      return;
+    loadCourses():void{
+        this.loading=true;
+        this.errorMessage='';
+
+        console.log('Training Course Component: Loading courses');
+
+        this.trainingCourseApplication.getAll().subscribe({
+            next:(response)=>{
+                console.log('Training Course list response:',response);
+
+                this.courses=Array.isArray(response)?response:[];
+                this.currentPage=1;
+                this.filterCourses();
+                this.loading=false;
+            },
+            error:(error)=>{
+                console.error('Training Course loading error:',error);
+                this.courses=[];
+                this.filteredCourses=[];
+                this.paginatedCourses=[];
+                this.updatePagination();
+                this.loading=false;
+                this.errorMessage=error?.error?.message||'Courses could not be loaded.';
+            }
+        });
     }
 
-    const feesAmount = this.feeRows.reduce(
-      (total, row) => total + Number(row.feeAmount || 0),
-      0
-    );
+    filterCourses():void{
+        const search=this.searchText.trim().toLowerCase();
 
-    const course: TrainingCourseEntity = {
-      courseId: 0,
-      courseName: this.courseForm.value.courseName,
-      feesAmount: feesAmount,
-      feesChangeDate: null,
-      installmentPercentage: null
-    };
+        this.filteredCourses=this.courses.filter(course=>
+            course.courseName?.toLowerCase().includes(search)
+        );
 
-    console.log('Create Training Course Payload:', course);
+        this.currentPage=1;
+        this.updatePagination();
 
-    this.createCourse.execute(course).subscribe({
-      next: (response) => {
-        console.log('Create Training Course Response:', response);
-
-        alert('Training course saved successfully.');
-
-        this.courseForm.reset();
-        this.feeRowForm.reset();
-        this.feeRows = [];
-
-        this.loadCourses();
-      },
-      error: (error) => {
-        console.error('Create Training Course Error:', error);
-        alert('Failed to save training course.');
-      }
-    });
-  }
-
-  toggleExpand(course: TrainingCourseViewModel): void {
-    course.expanded = !course.expanded;
-  }
-
-  deleteCourse(course: TrainingCourseViewModel): void {
-    if (!confirm(`Delete course "${course.courseName}"?`)) {
-      return;
+        console.log('Training Course Search:',search,'Results:',this.filteredCourses.length);
     }
 
-    console.log('Delete Training Course ID:', course.courseId);
+    updatePagination():void{
+        this.totalPages=Math.max(1,Math.ceil(this.filteredCourses.length/this.pageSize));
 
-    this.deleteCourseUseCase.execute(course.courseId).subscribe({
-      next: () => {
-        console.log('Training Course Deleted Successfully');
+        if(this.currentPage>this.totalPages){
+            this.currentPage=this.totalPages;
+        }
 
-        alert('Training course deleted successfully.');
+        const start=(this.currentPage-1)*this.pageSize;
+        const end=start+this.pageSize;
 
-        this.loadCourses();
-      },
-      error: (error) => {
-        console.error('Delete Training Course Error:', error);
+        this.paginatedCourses=this.filteredCourses.slice(start,end);
 
-        alert('Failed to delete training course.');
-      }
-    });
-  }
+        this.pageNumbers=Array.from(
+            {length:this.totalPages},
+            (_,index)=>index+1
+        );
 
-  restoreCourse(course: TrainingCourseViewModel): void {
-    console.log('Restore Training Course ID:', course.courseId);
+        console.log('Training Course Pagination:',{
+            currentPage:this.currentPage,
+            totalPages:this.totalPages,
+            records:this.paginatedCourses.length
+        });
+    }
 
-    this.restoreCourseUseCase.execute(course.courseId).subscribe({
-      next: () => {
-        console.log('Training Course Restored Successfully');
+    goToPage(page:number):void{
+        if(page<1||page>this.totalPages||page===this.currentPage){
+            return;
+        }
 
-        alert('Training course restored successfully.');
+        this.currentPage=page;
+        this.updatePagination();
+    }
 
-        this.loadCourses();
-      },
-      error: (error) => {
-        console.error('Restore Training Course Error:', error);
+    previousPage():void{
+        if(this.currentPage>1){
+            this.currentPage--;
+            this.updatePagination();
+        }
+    }
 
-        alert('Failed to restore training course.');
-      }
-    });
-  }
+    nextPage():void{
+        if(this.currentPage<this.totalPages){
+            this.currentPage++;
+            this.updatePagination();
+        }
+    }
 
-  updateCourseData(
-    course: TrainingCourseViewModel
-  ): void {
-    console.log('Update Training Course:', course);
+    get startRecord():number{
+        if(this.filteredCourses.length===0){
+            return 0;
+        }
 
-    this.updateCourse.execute(
-      course.courseId,
-      course
-    ).subscribe({
-      next: (response) => {
-        console.log('Update Training Course Response:', response);
+        return (this.currentPage-1)*this.pageSize+1;
+    }
 
-        alert('Training course updated successfully.');
+    get endRecord():number{
+        return Math.min(
+            this.currentPage*this.pageSize,
+            this.filteredCourses.length
+        );
+    }
 
-        this.loadCourses();
-      },
-      error: (error) => {
-        console.error('Update Training Course Error:', error);
+    openAddCourse():void{
+        console.log('Open Add Training Course');
 
-        alert('Failed to update training course.');
-      }
-    });
-  }
+        this.resetForm();
+        this.errorMessage='';
+        this.successMessage='';
+        this.showCourseModal=true;
+    }
+
+    closeCourseModal():void{
+        if(this.submitting){
+            return;
+        }
+
+        this.showCourseModal=false;
+        this.resetForm();
+        this.errorMessage='';
+    }
+
+    submit():void{
+        this.errorMessage='';
+        this.successMessage='';
+
+        if(this.courseForm.invalid){
+            this.courseForm.markAllAsTouched();
+            return;
+        }
+
+        const value=this.courseForm.getRawValue();
+
+        const course:TrainingCourseEntity={
+            courseId:Number(value.courseId)||0,
+            courseName:String(value.courseName).trim(),
+            feesAmount:value.feesAmount===null||value.feesAmount===''?null:Number(value.feesAmount),
+            feesChangeDate:value.feesChangeDate?new Date(value.feesChangeDate).toISOString():null,
+            installmentPercentage:value.installmentPercentage===null||value.installmentPercentage===''?null:Number(value.installmentPercentage)
+        };
+
+        this.submitting=true;
+
+        console.log(
+            this.editingId!==null?'Training Course Update Request:':'Training Course Create Request:',
+            course
+        );
+
+        if(this.editingId!==null){
+            this.trainingCourseApplication.update(this.editingId,course).subscribe({
+                next:(response)=>{
+                    console.log('Training Course update response:',response);
+
+                    this.successMessage='Course updated successfully.';
+                    this.showCourseModal=false;
+                    this.resetForm();
+                    this.loadCourses();
+                    this.submitting=false;
+                },
+                error:(error)=>{
+                    console.error('Training Course update error:',error);
+                    this.errorMessage=error?.error?.message||'Course update failed.';
+                    this.submitting=false;
+                }
+            });
+
+            return;
+        }
+
+        this.trainingCourseApplication.create(course).subscribe({
+            next:(response)=>{
+                console.log('Training Course create response:',response);
+
+                const createdId=Number(response?.courseId);
+
+                if(!createdId){
+                    console.error('Created course ID not received:',response);
+                    this.errorMessage='Course created but generated ID was not received.';
+                    this.submitting=false;
+                    return;
+                }
+
+                console.log('Generated Training Course ID:',createdId);
+
+                this.trainingCourseApplication.update(createdId,{
+                    ...course,
+                    courseId:createdId
+                }).subscribe({
+                    next:(updateResponse)=>{
+                        console.log('Training Course update after create response:',updateResponse);
+
+                        this.successMessage='Course created successfully.';
+                        this.showCourseModal=false;
+                        this.resetForm();
+                        this.loadCourses();
+                        this.submitting=false;
+                    },
+                    error:(updateError)=>{
+                        console.error('Training Course update after create error:',updateError);
+                        this.errorMessage='Course was created, but course details could not be saved.';
+                        this.submitting=false;
+                    }
+                });
+            },
+            error:(error)=>{
+                console.error('Training Course create error:',error);
+                this.errorMessage=error?.error?.message||'Course creation failed.';
+                this.submitting=false;
+            }
+        });
+    }
+
+    editCourse(course:TrainingCourseEntity):void{
+        console.log('Edit Training Course:',course);
+
+        this.editingId=course.courseId;
+
+        this.courseForm.patchValue({
+            courseId:course.courseId,
+            courseName:course.courseName,
+            feesAmount:course.feesAmount,
+            feesChangeDate:this.formatDate(course.feesChangeDate),
+            installmentPercentage:course.installmentPercentage
+        });
+
+        this.errorMessage='';
+        this.successMessage='';
+        this.showCourseModal=true;
+    }
+
+    deleteCourse(course:TrainingCourseEntity):void{
+        if(!window.confirm(`Delete course "${course.courseName}"?`)){
+            return;
+        }
+
+        console.log('Delete Training Course:',course.courseId);
+
+        this.trainingCourseApplication.delete(course.courseId).subscribe({
+            next:()=>{
+                console.log('Training Course deleted successfully');
+
+                this.successMessage='Course deleted successfully.';
+                this.loadCourses();
+            },
+            error:(error)=>{
+                console.error('Training Course delete error:',error);
+
+                this.errorMessage=error?.error?.message||'Course deletion failed.';
+            }
+        });
+    }
+
+    restoreCourse(course:TrainingCourseEntity):void{
+        if(!window.confirm(`Restore course "${course.courseName}"?`)){
+            return;
+        }
+
+        console.log('Restore Training Course:',course.courseId);
+
+        this.trainingCourseApplication.restore(course.courseId).subscribe({
+            next:()=>{
+                console.log('Training Course restored successfully');
+
+                this.successMessage='Course restored successfully.';
+                this.loadCourses();
+            },
+            error:(error)=>{
+                console.error('Training Course restore error:',error);
+
+                this.errorMessage=error?.error?.message||'Course restore failed.';
+            }
+        });
+    }
+
+    resetForm():void{
+        this.editingId=null;
+
+        this.courseForm.reset({
+            courseId:0,
+            courseName:'',
+            feesAmount:null,
+            feesChangeDate:'',
+            installmentPercentage:null
+        });
+    }
+
+    formatDate(value:string|null):string{
+        if(!value){
+            return '';
+        }
+
+        const date=new Date(value);
+
+        if(isNaN(date.getTime())){
+            return value;
+        }
+
+        return date.toISOString().substring(0,10);
+    }
+
+    displayDate(value:string|null):string{
+        if(!value){
+            return '—';
+        }
+
+        const date=new Date(value);
+
+        if(isNaN(date.getTime())){
+            return value;
+        }
+
+        return date.toLocaleDateString('en-GB');
+    }
+
+    isInvalid(controlName:string):boolean{
+        const control=this.courseForm.get(controlName);
+
+        return !!control&&control.invalid&&control.touched;
+    }
 }
