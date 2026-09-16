@@ -26,10 +26,7 @@
 
     <div class="filter-card">
         <div class="search-box">
-            <input
-                type="text"
-                [(ngModel)]="searchText"
-                (input)="applyFilters()"
+            <input type="text" [(ngModel)]="searchText" (input)="applyFilters()"
                 placeholder="Search name, email or mobile">
         </div>
 
@@ -79,9 +76,7 @@
                                 <span class="filter-icon">⌄</span>
                             </div>
 
-                            <div
-                                class="date-filter"
-                                *ngIf="openFilterColumn==='leadDate'"
+                            <div class="date-filter" *ngIf="openFilterColumn==='leadDate'"
                                 (click)="$event.stopPropagation()">
 
                                 <div class="date-filter-field">
@@ -95,17 +90,11 @@
                                 </div>
 
                                 <div class="date-filter-actions">
-                                    <button
-                                        type="button"
-                                        class="date-clear-btn"
-                                        (click)="clearDateFilter()">
+                                    <button type="button" class="date-clear-btn" (click)="clearDateFilter()">
                                         Clear
                                     </button>
 
-                                    <button
-                                        type="button"
-                                        class="date-apply-btn"
-                                        (click)="applyDateFilter()">
+                                    <button type="button" class="date-apply-btn" (click)="applyDateFilter()">
                                         Apply
                                     </button>
                                 </div>
@@ -125,18 +114,13 @@
                         <td>{{lead.mobileNumber}}</td>
                         <td>{{lead.trainingType}}</td>
                         <td>
-                            <span
-                                class="status"
-                                [ngClass]="getStatusClass(lead.status)">
+                            <span class="status" [ngClass]="getStatusClass(lead.status)">
                                 {{lead.status}}
                             </span>
                         </td>
                         <td>{{lead.leadDate | date:'dd-MM-yyyy'}}</td>
                         <td>
-                            <button
-                                class="followup-btn"
-                                type="button"
-                                (click)="followup(lead)">
+                            <button class="followup-btn" type="button" (click)="followup(lead)">
                                 Followup
                             </button>
                         </td>
@@ -168,10 +152,7 @@
                 <p>Create a new lead</p>
             </div>
 
-            <button
-                type="button"
-                class="close-btn"
-                (click)="closeAddLead()">
+            <button type="button" class="close-btn" (click)="closeAddLead()">
                 ×
             </button>
         </div>
@@ -181,29 +162,17 @@
 
                 <div class="form-group">
                     <label>Candidate Name</label>
-                    <input
-                        type="text"
-                        name="candidateName"
-                        [(ngModel)]="leadForm.candidateName"
-                        required>
+                    <input type="text" name="candidateName" [(ngModel)]="leadForm.candidateName" required>
                 </div>
 
                 <div class="form-group">
                     <label>Email Address</label>
-                    <input
-                        type="email"
-                        name="emailAddress"
-                        [(ngModel)]="leadForm.emailAddress"
-                        required>
+                    <input type="email" name="emailAddress" [(ngModel)]="leadForm.emailAddress" required>
                 </div>
 
                 <div class="form-group">
                     <label>Mobile Number</label>
-                    <input
-                        type="text"
-                        name="mobileNumber"
-                        [(ngModel)]="leadForm.mobileNumber"
-                        required>
+                    <input type="text" name="mobileNumber" [(ngModel)]="leadForm.mobileNumber" required>
                 </div>
 
                 <div class="form-group">
@@ -211,21 +180,13 @@
 
                     <div class="radio-group">
                         <label class="radio-option">
-                            <input
-                                type="radio"
-                                name="trainingType"
-                                value="Online"
-                                [(ngModel)]="leadForm.trainingType"
+                            <input type="radio" name="trainingType" value="Online" [(ngModel)]="leadForm.trainingType"
                                 required>
                             <span>Online</span>
                         </label>
 
                         <label class="radio-option">
-                            <input
-                                type="radio"
-                                name="trainingType"
-                                value="Offline"
-                                [(ngModel)]="leadForm.trainingType">
+                            <input type="radio" name="trainingType" value="Offline" [(ngModel)]="leadForm.trainingType">
                             <span>Offline</span>
                         </label>
                     </div>
@@ -233,44 +194,37 @@
 
                 <div class="form-group">
                     <label>Lead Date</label>
-                    <input
-                        type="date"
-                        name="leadDate"
-                        [(ngModel)]="leadDateValue"
-                        disabled>
+                    <input type="date" name="leadDate" [(ngModel)]="leadDateValue" disabled>
                 </div>
 
                 <div class="form-group">
-                    <label>Source ID</label>
-                    <input
-                        type="number"
-                        name="sourceId"
-                        [(ngModel)]="leadForm.sourceId"
-                        required>
+                    <label>Lead Source</label>
+                    <select name="sourceId" [(ngModel)]="leadForm.sourceId" (change)="onLeadSourceChange()" required>
+
+                        <option [ngValue]="0">
+                            {{leadSourcesLoading ? 'Loading lead sources...' : 'Select Lead Source'}}
+                        </option>
+
+                        <option *ngFor="let source of leadSources" [ngValue]="source.sourceId">
+                            {{source.sourceName}}
+                        </option>
+                    </select>
                 </div>
 
                 <div class="form-group full-width">
                     <label>Description</label>
-                    <textarea
-                        name="description"
-                        [(ngModel)]="leadForm.description"
-                        rows="3">
+                    <textarea name="description" [(ngModel)]="leadForm.description" rows="3">
                     </textarea>
                 </div>
 
             </div>
 
             <div class="modal-actions">
-                <button
-                    type="button"
-                    class="cancel-btn"
-                    (click)="closeAddLead()">
+                <button type="button" class="cancel-btn" (click)="closeAddLead()">
                     Cancel
                 </button>
 
-                <button
-                    type="submit"
-                    class="save-btn">
+                <button type="submit" class="save-btn">
                     Save Lead
                 </button>
             </div>

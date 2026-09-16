@@ -4,6 +4,8 @@ import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
 import {Lead} from '../../Domain/Entities/Lead';
 import {LeadApplication} from '../../Application/Lead/LeadApplication';
+import {LeadSource} from '../../Domain/Entities/LeadSource';
+import {LeadSourceApplication} from '../../Application/LeadSource/LeadSourceApplication';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -17,11 +19,14 @@ import autoTable from 'jspdf-autotable';
 })
 export class LeadComponent{
     private leadApplication=inject(LeadApplication);
+    private leadSourceApplication=inject(LeadSourceApplication);
     private cdr=inject(ChangeDetectorRef);
     private router=inject(Router);
 
     leads:Lead[]=[];
     filteredLeads:Lead[]=[];
+    leadSources:LeadSource[]=[];
+
     searchText='';
     statusFilter='';
     trainingTypeFilter='';
@@ -32,6 +37,7 @@ export class LeadComponent{
     showAddForm=false;
     showExportMenu=false;
     loading=false;
+    leadSourcesLoading=false;
 
     leadForm:Lead={
         leadId:0,
@@ -49,6 +55,7 @@ export class LeadComponent{
     ngOnInit():void{
         this.setCurrentDate();
         this.loadLeads();
+        this.loadLeadSources();
     }
 
     setCurrentDate():void{
@@ -59,6 +66,7 @@ export class LeadComponent{
     loadLeads():void{
         this.loading=true;
         console.log('Lead Component: Loading all leads');
+
         this.leadApplication.getAll().subscribe({
             next:(response)=>{
                 console.log('Lead API response:',response);
@@ -69,10 +77,48 @@ export class LeadComponent{
             },
             error:(error)=>{
                 console.error('Lead API error:',error);
+                this.leads=[];
+                this.filteredLeads=[];
                 this.loading=false;
                 this.cdr.detectChanges();
             }
         });
+    }
+
+    loadLeadSources():void{
+        this.leadSourcesLoading=true;
+        console.log('LeadSource Component: Loading lead sources');
+
+        this.leadSourceApplication.getAll().subscribe({
+            next:(response)=>{
+                console.log('LeadSource API response:',response);
+
+                this.leadSources=(response||[])
+                    .filter(source=>source.flag===1&&source.deletedAt===null)
+                    .sort((a,b)=>a.sourceName.localeCompare(b.sourceName));
+
+                console.log('Lead sources loaded:',this.leadSources);
+
+                this.leadSourcesLoading=false;
+                this.cdr.detectChanges();
+            },
+            error:(error)=>{
+                console.error('LeadSource API error:',error);
+                this.leadSources=[];
+                this.leadSourcesLoading=false;
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    onLeadSourceChange():void{
+        const source=this.leadSources.find(
+            item=>Number(item.sourceId)===Number(this.leadForm.sourceId)
+        );
+
+        this.leadForm.sourceName=source?.sourceName||'';
+
+        console.log('Selected Lead Source:',this.leadForm.sourceId,this.leadForm.sourceName);
     }
 
     applyFilters():void{
@@ -153,6 +199,7 @@ export class LeadComponent{
     createLead():void{
         this.leadForm.status='New';
         this.leadForm.leadDate=this.createLocalDate(this.leadDateValue);
+        this.onLeadSourceChange();
 
         console.log('Creating Lead:',this.leadForm);
 
@@ -182,6 +229,12 @@ export class LeadComponent{
         return (status||'').toLowerCase().replace(/\s+/g,'-');
     }
 
+    getLeadSourceName(sourceId:number):string{
+        return this.leadSources.find(
+            source=>Number(source.sourceId)===Number(sourceId)
+        )?.sourceName||'';
+    }
+
     toggleExportMenu():void{
         this.showExportMenu=!this.showExportMenu;
     }
@@ -198,7 +251,7 @@ export class LeadComponent{
             'Training Type':lead.trainingType,
             Status:lead.status,
             'Lead Date':this.formatDate(lead.leadDate),
-            'Source ID':lead.sourceId,
+            'Lead Source':this.getLeadSourceName(lead.sourceId),
             Description:lead.description
         }));
 
@@ -231,7 +284,7 @@ export class LeadComponent{
             lead.trainingType,
             lead.status,
             this.formatDate(lead.leadDate),
-            lead.sourceId
+            this.getLeadSourceName(lead.sourceId)
         ]);
 
         autoTable(doc,{
@@ -245,7 +298,7 @@ export class LeadComponent{
                 'Training Type',
                 'Status',
                 'Lead Date',
-                'Source ID'
+                'Lead Source'
             ]],
             body:rows,
             theme:'grid',

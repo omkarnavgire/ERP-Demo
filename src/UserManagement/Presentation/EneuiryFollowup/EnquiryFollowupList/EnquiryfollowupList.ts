@@ -14,9 +14,10 @@ export interface Enquiry {
     emailAddress:string;
     mobileNumber:string;
     birthDate:string;
+    qualificationId:number;
     qualification:string;
     leadSources:string;
-    enquiryFor:string;
+    enquiryFors:string;
     interestedTopics:string;
     status:string;
     branchId:number;
@@ -49,11 +50,13 @@ export class Enquirylist implements OnInit {
 
     columnFilters:Record<string,string[]>={};
 
+    dateFilterFrom='';
+    dateFilterTo='';
+
     filterColumns=[
         {key:'candidateName',label:'Candidate Name'},
-        {key:'enquiryDate',label:'Enquiry Date'},
         {key:'qualification',label:'Qualification'},
-        {key:'enquiryFor',label:'Enquiry For'},
+        {key:'enquiryFors',label:'Enquiry For'},
         {key:'leadSources',label:'Lead Source'},
         {key:'interestedTopics',label:'Interested Topics'}
     ];
@@ -143,6 +146,18 @@ export class Enquirylist implements OnInit {
             );
         }
 
+        if(this.dateFilterFrom){
+            data=data.filter(enquiry=>
+                this.getDateOnly(enquiry.enquiryDate)>=this.dateFilterFrom
+            );
+        }
+
+        if(this.dateFilterTo){
+            data=data.filter(enquiry=>
+                this.getDateOnly(enquiry.enquiryDate)<=this.dateFilterTo
+            );
+        }
+
         Object.keys(this.columnFilters).forEach(column=>{
             const selected=this.columnFilters[column];
 
@@ -193,11 +208,29 @@ export class Enquirylist implements OnInit {
         }
 
         console.log('Column filter:',column,value);
+
         this.applyFilters();
     }
 
     clearColumnFilter(column:string):void {
         this.columnFilters[column]=[];
+
+        this.applyFilters();
+    }
+
+    applyDateColumnFilter():void {
+        console.log('Date column filter:',{
+            from:this.dateFilterFrom,
+            to:this.dateFilterTo
+        });
+
+        this.applyFilters();
+    }
+
+    clearDateColumnFilter():void {
+        this.dateFilterFrom='';
+        this.dateFilterTo='';
+
         this.applyFilters();
     }
 
@@ -206,6 +239,8 @@ export class Enquirylist implements OnInit {
         this.fromDate='';
         this.toDate='';
         this.selectedBranch='';
+        this.dateFilterFrom='';
+        this.dateFilterTo='';
         this.openFilterColumn=null;
 
         Object.keys(this.columnFilters).forEach(column=>{
@@ -217,12 +252,17 @@ export class Enquirylist implements OnInit {
 
     newEnquiry():void {
         console.log('Open New Enquiry');
+
         this.router.navigate(['/main/enquiry/add']);
     }
 
     openFollowup(enquiry:Enquiry):void {
         console.log('Open Followup:',enquiry.enquiryId);
-        this.router.navigate(['/main/enquiry/followup',enquiry.enquiryId]);
+
+        this.router.navigate([
+            '/main/enquiry/followup',
+            enquiry.enquiryId
+        ]);
     }
 
     exportExcel():void {
@@ -237,7 +277,7 @@ export class Enquirylist implements OnInit {
             'Birth Date':enquiry.birthDate,
             'Qualification':enquiry.qualification,
             'Lead Sources':enquiry.leadSources,
-            'Enquiry For':enquiry.enquiryFor,
+            'Enquiry For':enquiry.enquiryFors,
             'Interested Topics':enquiry.interestedTopics,
             'Status':enquiry.status,
             'Branch ID':enquiry.branchId,

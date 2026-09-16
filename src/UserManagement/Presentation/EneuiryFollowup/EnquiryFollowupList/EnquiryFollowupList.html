@@ -46,13 +46,17 @@
                                 Enquiry<br>Date
                                 <span>▼</span>
                             </div>
-                            <div class="header-filter" *ngIf="openFilterColumn==='enquiryDate'">
-                                <div class="filter-title">Filter</div>
-                                <label *ngFor="let value of getFilterValues('enquiryDate')">
-                                    <input type="checkbox" [checked]="isFilterSelected('enquiryDate',value)" (change)="toggleColumnFilter('enquiryDate',value)">
-                                    {{value | date:'M/d/yyyy'}}
-                                </label>
-                                <button type="button" (click)="clearColumnFilter('enquiryDate')">Clear</button>
+
+                            <div class="header-filter date-header-filter" *ngIf="openFilterColumn==='enquiryDate'">
+                                <div class="filter-title">Date Filter</div>
+
+                                <label>From Date</label>
+                                <input type="date" [(ngModel)]="dateFilterFrom" (change)="applyDateColumnFilter()">
+
+                                <label>To Date</label>
+                                <input type="date" [(ngModel)]="dateFilterTo" (change)="applyDateColumnFilter()">
+
+                                <button type="button" (click)="clearDateColumnFilter()">Clear</button>
                             </div>
                         </th>
 
@@ -72,17 +76,17 @@
                         </th>
 
                         <th>
-                            <div class="th-title" (click)="toggleFilter('enquiryFor')">
+                            <div class="th-title" (click)="toggleFilter('enquiryFors')">
                                 Enquiry For
                                 <span>▼</span>
                             </div>
-                            <div class="header-filter" *ngIf="openFilterColumn==='enquiryFor'">
+                            <div class="header-filter" *ngIf="openFilterColumn==='enquiryFors'">
                                 <div class="filter-title">Filter</div>
-                                <label *ngFor="let value of getFilterValues('enquiryFor')">
-                                    <input type="checkbox" [checked]="isFilterSelected('enquiryFor',value)" (change)="toggleColumnFilter('enquiryFor',value)">
+                                <label *ngFor="let value of getFilterValues('enquiryFors')">
+                                    <input type="checkbox" [checked]="isFilterSelected('enquiryFors',value)" (change)="toggleColumnFilter('enquiryFors',value)">
                                     {{value}}
                                 </label>
-                                <button type="button" (click)="clearColumnFilter('enquiryFor')">Clear</button>
+                                <button type="button" (click)="clearColumnFilter('enquiryFors')">Clear</button>
                             </div>
                         </th>
 
@@ -126,7 +130,7 @@
                         <td>{{enquiry.candidateName}}</td>
                         <td>{{enquiry.enquiryDate | date:'M/d/yyyy'}}</td>
                         <td>{{enquiry.qualification}}</td>
-                        <td>{{enquiry.enquiryFor}}</td>
+                        <td>{{enquiry.enquiryFors}}</td>
                         <td>{{enquiry.leadSources}}</td>
                         <td>{{enquiry.interestedTopics}}</td>
                         <td class="actions">

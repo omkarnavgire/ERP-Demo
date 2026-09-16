@@ -21,6 +21,11 @@ import {LEAD_FOLLOWUP_REPOSITORY} from "./Domain/Repositories/Token/leadfollowup
 import {LeadFollowupRepositoriesImpl} from "./Infrastructure/Repositories/LeadFollowuprepositoriesimpl";
 import {TRAINING_COURSE_REPOSITORY} from "./Domain/Repositories/Token/trainingcourserepositorytoken";
 import {TrainingCourseRepositoryImpl} from "./Infrastructure/Repositories/Trainingcourserepositoriesimpl";
+import {QUALIFICATION_REPOSITORY} from './Domain/Repositories/Token/qualificationrepositorytoken';
+import {Qualificationrepositoriesimpl} from './Infrastructure/Repositories/Qualificationrepositoriesimpl';
+
+import {LEAD_SOURCE_REPOSITORY} from './Domain/Repositories/Token/leadsourcerepositorytoken';
+import {LeadSourcerepositoriesimpl} from './Infrastructure/Repositories/LeadSourcerepositoriesimpl';
 
 export const appConfig:ApplicationConfig={
     providers:[
@@ -29,6 +34,8 @@ export const appConfig:ApplicationConfig={
         {provide:AuthRepository,useClass:AuthRepositoryImpl},
         {provide:AccountRepository,useClass:AccountRepositoryImpl},
         {provide:EmployeeRepository,useClass:EmployeeRepositoryImpl},
+        {provide:QUALIFICATION_REPOSITORY,useClass:Qualificationrepositoriesimpl},
+        {provide:LEAD_SOURCE_REPOSITORY,useClass:LeadSourcerepositoriesimpl},
         {provide:UserRepository,useClass:UserRepositoryImpl},
         {provide:ENQUIRY_FOLLOWUP_REPOSITORY,useClass:EnquiryFollowupRepositoriesImpl},
         {provide:EnquiryRepository,useClass:EnquiryApi},

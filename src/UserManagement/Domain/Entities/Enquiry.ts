@@ -7,9 +7,10 @@ export interface Enquiry {
     emailAddress:string;
     mobileNumber:string;
     birthDate:string;
+    qualificationId:number;
     qualification:string;
     leadSources:string;
-    enquiryFor:string;
+    enquiryFors:string;
     interestedTopics:string;
     status:string;
     branchId:number;
