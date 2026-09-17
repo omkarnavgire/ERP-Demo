@@ -1,6 +1,6 @@
 import {HttpClient} from "@angular/common/http";
 import {Injectable} from "@angular/core";
-import {Observable,map} from "rxjs";
+import {Observable,map,shareReplay} from "rxjs";
 import {Role} from "../../Domain/Entities/Role";
 
 @Injectable({
@@ -9,35 +9,48 @@ import {Role} from "../../Domain/Entities/Role";
 export class RoleApi {
     private baseUrl="https://superuser.ciitstudent.com/api/roles/get-roles";
 
+    private rolesCache$:Observable<Role[]>|null=null;
+
     constructor(private http:HttpClient){}
 
     getAllRoles():Observable<Role[]> {
-        console.log("Loading roles from:",this.baseUrl);
 
-        return this.http
-            .get<any>(this.baseUrl)
-            .pipe(
-                map(response=>{
-                    console.log("Roles API raw response:",response);
+        if(!this.rolesCache$){
 
-                    if(Array.isArray(response)){
-                        return response;
-                    }
+            console.log("Loading roles from:",this.baseUrl);
 
-                    if(Array.isArray(response?.data)){
-                        return response.data;
-                    }
+            this.rolesCache$=this.http
+                .get<any>(this.baseUrl)
+                .pipe(
+                    map(response=>{
+                        console.log("Roles API raw response:",response);
 
-                    if(Array.isArray(response?.result)){
-                        return response.result;
-                    }
+                        if(Array.isArray(response)){
+                            return response;
+                        }
 
-                    if(Array.isArray(response?.items)){
-                        return response.items;
-                    }
+                        if(Array.isArray(response?.data)){
+                            return response.data;
+                        }
 
-                    return [];
-                })
-            );
+                        if(Array.isArray(response?.result)){
+                            return response.result;
+                        }
+
+                        if(Array.isArray(response?.items)){
+                            return response.items;
+                        }
+
+                        return [];
+                    }),
+                    shareReplay(1)
+                );
+        }
+
+        return this.rolesCache$;
+    }
+
+    clearRolesCache():void{
+        this.rolesCache$=null;
     }
 }
